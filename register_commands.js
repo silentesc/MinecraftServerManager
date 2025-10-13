@@ -36,6 +36,10 @@ const commands = [
                         name: "ping",
                         value: "ping",
                     },
+                    {
+                        name: "start",
+                        value: "start",
+                    },
                 ]
             }
         ]
