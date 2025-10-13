@@ -13,17 +13,12 @@ readdirSync("./src/commands").filter(file => file.endsWith(".ts")).forEach(fileN
 const client = new Client({ intents: [] });
 
 
-client.on("clientReady", c => {
+client.on("clientReady", async c => {
     console.log(`Logged in as ${c.user.tag}`);
-    if (client.user) {
-        client.user.setActivity({
-            name: "/help",
-            type: ActivityType.Watching
-        });
-    }
-    else {
-        console.error("Failed to set activity. client.user not defined.")
-    }
+    c.user.setActivity({
+        name: "/help",
+        type: ActivityType.Watching
+    });
 });
 
 

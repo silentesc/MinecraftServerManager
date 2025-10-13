@@ -7,6 +7,7 @@ dist/
 
 # Secrets
 .env
+servers.json
 
 # Coverage directory used by testing tools
 coverage

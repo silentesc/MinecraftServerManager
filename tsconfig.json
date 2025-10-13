@@ -9,7 +9,8 @@
         "skipLibCheck": true,
         "strictNullChecks": true,
         "resolveJsonModule": true,
-        "outDir": "dist"
+        "esModuleInterop": true,
+        "outDir": "dist",
     },
     "include": [
         "src"

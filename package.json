@@ -8,16 +8,17 @@
     "scripts": {
         "dev": "tsx watch src/main.ts",
         "build": "tsc",
-        "start": "node dist/main.js",
+        "start": "node dist/src/main.js",
         "register": "node register_commands.js"
     },
     "dependencies": {
         "discord.js": "^14.14.1",
-        "dotenv": "^16.4.5"
+        "dotenv": "^16.4.5",
+        "rcon-client": "^4.2.5"
     },
     "devDependencies": {
         "@types/node": "^20.12.7",
-        "typescript": "^5.8.2",
-        "tsx": "^4.7.3"
+        "tsx": "^4.7.3",
+        "typescript": "^5.8.2"
     }
 }
