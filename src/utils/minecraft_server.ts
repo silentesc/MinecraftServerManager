@@ -3,25 +3,33 @@ import { Rcon } from "rcon-client";
 
 
 export class MinecraftServer {
+    static servers: Array<MinecraftServer> = new Array();
+
+    serverName: string;
     startServerExecutable: string;
-    empty_server_check_interval_millis: number;
-    empty_server_duration_until_shutdown_millis: number;
+    emptyServerCheckIntervalMillis: number;
+    emptyServerDurationUntilShutdownMillis: number;
     rconHost: string;
     rconPort: number;
     rconPassword: string;
     rconTimeoutMs: number;
+    discordServerIds: Array<string>;
+    discordMemberIds: Array<string>;
 
     private intervalId: any | null = null;
 
 
-    constructor(startServerExecutable: string, empty_server_check_interval_millis: number, empty_server_duration_until_shutdown_millis: number, rconHost: string, rconPort: number, rconPassword: string, rconTimeoutMs: number) {
+    constructor(serverName: string, startServerExecutable: string, emptyServerCheckIntervalMillis: number, emptyServerDurationUntilShutdownMillis: number, rconHost: string, rconPort: number, rconPassword: string, rconTimeoutMs: number, discordServerIds: Array<string>, discordMemberIds: Array<string>) {
+        this.serverName = serverName;
         this.startServerExecutable = startServerExecutable;
-        this.empty_server_check_interval_millis = empty_server_check_interval_millis;
-        this.empty_server_duration_until_shutdown_millis = empty_server_duration_until_shutdown_millis;
+        this.emptyServerCheckIntervalMillis = emptyServerCheckIntervalMillis;
+        this.emptyServerDurationUntilShutdownMillis = emptyServerDurationUntilShutdownMillis;
         this.rconHost = rconHost;
         this.rconPort = rconPort;
         this.rconPassword = rconPassword;
         this.rconTimeoutMs = rconTimeoutMs;
+        this.discordServerIds = discordServerIds;
+        this.discordMemberIds = discordMemberIds;
     }
 
 
@@ -76,7 +84,7 @@ export class MinecraftServer {
                 return;
             }
             // End interval checks and stop server
-            if (counterMillis >= this.empty_server_check_interval_millis) {
+            if (counterMillis >= this.emptyServerCheckIntervalMillis) {
                 this.stopServer();
                 clearInterval(this.intervalId);
                 this.intervalId = null;
@@ -89,8 +97,8 @@ export class MinecraftServer {
                 counterMillis = 0;
             }
             // Increment interval counter
-            counterMillis += this.empty_server_check_interval_millis;
-        }, this.empty_server_check_interval_millis);
+            counterMillis += this.emptyServerCheckIntervalMillis;
+        }, this.emptyServerCheckIntervalMillis);
     }
 
 

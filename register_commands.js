@@ -4,6 +4,18 @@ require("dotenv").config();
 
 const commands = [
     {
+        name: "start",
+        description: "Starts the minecraft server.",
+        options: [
+            {
+                name: "name",
+                description: "The server to start.",
+                type: ApplicationCommandOptionType.String,
+                required: true,
+            },
+        ],
+    },
+    {
         name: "ping",
         description: "Shows the client & websocket latency.",
     },

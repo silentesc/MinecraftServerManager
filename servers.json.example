@@ -1,5 +1,6 @@
 [
     {
+        "server_name": "Friend Group 1",
         "empty_server_check_interval_millis": 5000,
         "empty_server_duration_until_shutdown_millis": 108000,
         "start_server_executable": "/home/myusername/minecraft_1.21/run.sh",
@@ -11,6 +12,7 @@
         "discord_member_ids": ["5678", "8765"]
     },
     {
+        "server_name": "Friend Group 2",
         "empty_server_check_interval_millis": 5000,
         "empty_server_duration_until_shutdown_millis": 108000,
         "start_server_executable": "/home/myusername/minecraft_1.20/run.sh",
