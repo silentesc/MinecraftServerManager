@@ -1,0 +1,8 @@
+**Options:**
+`command_name` - The specific command to view.
+
+**Usage example:**
+`/help (command_name)`
+
+`[]` - required
+`()` - optional

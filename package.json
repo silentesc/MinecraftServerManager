@@ -1,0 +1,22 @@
+{
+    "name": "bot_base",
+    "description": "A simple discord bot structure using TypeScript and discord.js with working help and ping slash commands.",
+    "version": "1.0.0",
+    "license": "ISC",
+    "author": "silentesc",
+    "main": "dist/main.js",
+    "scripts": {
+        "dev": "tsx watch src/main.ts",
+        "build": "tsc",
+        "start": "node dist/main.js",
+        "register": "node register_commands.js"
+    },
+    "dependencies": {
+        "discord.js": "^14.14.1",
+        "dotenv": "^16.4.5"
+    },
+    "devDependencies": {
+        "@types/node": "^20.12.7",
+        "tsx": "^4.7.3"
+    }
+}
