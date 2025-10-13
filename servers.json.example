@@ -2,7 +2,7 @@
     {
         "server_name": "Friend Group 1",
         "empty_server_check_interval_millis": 5000,
-        "empty_server_duration_until_shutdown_millis": 108000,
+        "empty_server_duration_until_shutdown_millis": 1800000,
         "start_server_executable": "/home/myusername/minecraft_1.21/run.sh",
         "rcon_host": "127.0.0.1",
         "rcon_port": 25575,
@@ -14,7 +14,7 @@
     {
         "server_name": "Friend Group 2",
         "empty_server_check_interval_millis": 5000,
-        "empty_server_duration_until_shutdown_millis": 108000,
+        "empty_server_duration_until_shutdown_millis": 1800000,
         "start_server_executable": "/home/myusername/minecraft_1.20/run.sh",
         "rcon_host": "127.0.0.1",
         "rcon_port": 25576,
