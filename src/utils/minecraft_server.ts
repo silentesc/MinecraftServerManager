@@ -3,23 +3,36 @@ import { Rcon } from "rcon-client";
 
 
 export class MinecraftServer {
+    startServerExecutable: string;
+    empty_server_check_interval_millis: number;
+    empty_server_duration_until_shutdown_millis: number;
     rconHost: string;
     rconPort: number;
     rconPassword: string;
     rconTimeoutMs: number;
-    startServerExecutable: string;
+
+    private intervalId: any | null = null;
 
 
-    constructor(rconHost: string, rconPort: number, rconPassword: string, rconTimeoutMs: number, startServerExecutable: string) {
+    constructor(startServerExecutable: string, empty_server_check_interval_millis: number, empty_server_duration_until_shutdown_millis: number, rconHost: string, rconPort: number, rconPassword: string, rconTimeoutMs: number) {
+        this.startServerExecutable = startServerExecutable;
+        this.empty_server_check_interval_millis = empty_server_check_interval_millis;
+        this.empty_server_duration_until_shutdown_millis = empty_server_duration_until_shutdown_millis;
         this.rconHost = rconHost;
         this.rconPort = rconPort;
         this.rconPassword = rconPassword;
         this.rconTimeoutMs = rconTimeoutMs;
-        this.startServerExecutable = startServerExecutable;
     }
 
 
+    /**
+     * @throws error
+     */
     async startServer(): Promise<void> {
+        if (await this.isServerOnline()) {
+            throw Error("Server already running");
+        }
+
         let done = false;
         exec(this.startServerExecutable, (error, stdout, stderr) => {
             if (error) {
@@ -30,6 +43,7 @@ export class MinecraftServer {
             }
             done = true;
         });
+
         const intervalId = setInterval(() => {
             if (done) {
                 clearInterval(intervalId);
@@ -39,12 +53,44 @@ export class MinecraftServer {
 
 
     async stopServer(): Promise<void> {
-        if (!this.isServerOnline()) {
+        if (!(await this.isServerOnline())) {
             return;
         }
         this.withRcon(async (rcon: Rcon) => {
             await rcon.send("stop");
         });
+    }
+
+
+    async waitForServerEmpty(): Promise<void> {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        let counterMillis = 0;
+        this.intervalId = setInterval(async () => {
+            // End interval checks
+            if (!(await this.isServerOnline())) {
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+                return;
+            }
+            // End interval checks and stop server
+            if (counterMillis >= this.empty_server_check_interval_millis) {
+                this.stopServer();
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+                return;
+            }
+            // Reset interval counter
+            if (await this.isAnyPlayerOnline()) {
+                clearInterval(this.intervalId);
+                this.intervalId = null;
+                counterMillis = 0;
+            }
+            // Increment interval counter
+            counterMillis += this.empty_server_check_interval_millis;
+        }, this.empty_server_check_interval_millis);
     }
 
 
@@ -59,7 +105,7 @@ export class MinecraftServer {
 
 
     async isAnyPlayerOnline(): Promise<boolean> {
-        if (!this.isServerOnline()) {
+        if (!(await this.isServerOnline())) {
             return false;
         }
 
