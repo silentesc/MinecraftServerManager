@@ -40,7 +40,7 @@ export class MinecraftServer {
 
     async startServer(): Promise<void> {
         if (await this.isServerOnline()) {
-            throw Error("Server already running");
+            throw new Error("Server already running");
         }
 
         try {

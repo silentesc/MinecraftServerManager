@@ -16,7 +16,7 @@ export class RconManager {
 
     async withRcon<T>(callback: (rcon: Rcon) => Promise<T>): Promise<T> {
         if (!this.getIsConnected()) {
-            throw Error("Rcon not connected");
+            throw new Error("Rcon not connected");
         }
         try {
             return await callback(this.rcon);
