@@ -29,7 +29,7 @@ export class RconManager {
 
     async connect(tryCount: number = 1, maxTries: number = 3): Promise<void> {
         if (this.getIsConnected()) {
-            logger.debug(`Ignoring connect method for ${this.rcon.config.host}:${this.rcon.config.port} since it's already connected`)
+            logger.debug(`Ignoring connect method for ${this.rcon.config.host}:${this.rcon.config.port} since it's already connected`);
             return;
         }
         if (tryCount > maxTries) {
