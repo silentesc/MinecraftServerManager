@@ -1,6 +1,7 @@
 import { Client, ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
 import { MinecraftServer } from "../utils/minecraft_server";
 import { sleep } from "../utils/utils";
+import logger from "../utils/logging";
 
 
 module.exports = {
@@ -50,8 +51,10 @@ module.exports = {
 
         // Start server
         try {
+            logger.info(`${interaction.member.user.username} started the server ${targetServer.serverName}`);
             await targetServer.startServer();
         } catch (error) {
+            logger.error(`${targetServer.serverName} failed to start`);
             responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription((error as string));
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
@@ -74,9 +77,11 @@ module.exports = {
                 return;
             }
         }, 3000);
+        logger.info(`Waiting for server ${targetServer.serverName} to be online`);
         while (!serverOnline) {
             await sleep(1000);
         }
+        logger.info(`Server ${targetServer.serverName} is online`);
 
         targetServer.isStarting = false;
 
