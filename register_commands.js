@@ -44,6 +44,10 @@ const commands = [
                         name: "start",
                         value: "start",
                     },
+                    {
+                        name: "servers",
+                        value: "servers",
+                    },
                 ]
             }
         ]
