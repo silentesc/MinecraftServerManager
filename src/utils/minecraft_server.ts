@@ -4,7 +4,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import logger from "./logging";
 import { RconManager } from "./rcon_manager";
-import { getErrorMessage } from "./utils";
+import { getErrorMessage, roundTo } from "./utils";
 const execAsync = promisify(exec);
 
 
@@ -79,6 +79,7 @@ export class MinecraftServer {
         }
         let counterMillis = 0;
         this.intervalId = setInterval(async () => {
+            logger.trace(`Checking ${this.serverName} for empty server`);
             // End interval checks
             if (!(await this.isServerOnline())) {
                 logger.debug(`${this.serverName} not online, stopping wait for server empty job`);
@@ -88,21 +89,24 @@ export class MinecraftServer {
             }
             // End interval checks and stop server
             if (counterMillis >= this.emptyServerDurationUntilShutdownMillis) {
-                logger.info(`Nobody was online for ${this.emptyServerDurationUntilShutdownMillis / 60000} minutes, stopping server ${this.serverName}`);
+                logger.info(`Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes, stopping server ${this.serverName}`);
                 this.stopServer();
                 clearInterval(this.intervalId);
                 this.intervalId = null;
-                await this.sendInteractionFollowUp(interaction, "Server automatically stopped", `Nobody was online for ${this.emptyServerDurationUntilShutdownMillis / 60000} minutes`)
+                await this.sendInteractionFollowUp(interaction, "Server automatically stopped", `Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`)
                 return;
             }
             // Reset interval counter
             if (await this.isAnyPlayerOnline()) {
+                logger.trace(`${this.serverName} has online players`);
                 clearInterval(this.intervalId);
                 this.intervalId = null;
                 counterMillis = 0;
+                return;
             }
             // Increment interval counter
             counterMillis += this.emptyServerCheckIntervalMillis;
+            logger.trace(`${this.serverName} has no online players, reached ${roundTo(this.emptyServerCheckIntervalMillis / 60000, 2)}/${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
         }, this.emptyServerCheckIntervalMillis);
     }
 
