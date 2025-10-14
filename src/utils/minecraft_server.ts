@@ -3,6 +3,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { Rcon } from "rcon-client";
 import logger from "./logging";
 import { RconManager } from "./rcon_manager";
+import { getErrorMessage } from "./utils";
 
 
 export class MinecraftServer {
@@ -48,7 +49,7 @@ export class MinecraftServer {
         let done = false;
         exec(this.startServerExecutable, (error, stdout, stderr) => {
             if (error) {
-                logger.error(`Starting ${this.serverName} threw an error: ${error}`);
+                logger.error(`Starting ${this.serverName} threw an error: ${getErrorMessage(error)}`);
                 throw error;
             }
             else if (stderr) {
@@ -76,7 +77,7 @@ export class MinecraftServer {
             logger.trace(`[stopServer] ${this.serverName} not online, returning`);
             return;
         }
-        this.rconManager.withRcon(async (rcon: Rcon) => {
+        await this.rconManager.withRcon(async (rcon: Rcon) => {
             logger.trace(`[stopServer] Sending stop signal to ${this.serverName}`);
             await rcon.send("stop");
         });
@@ -122,17 +123,22 @@ export class MinecraftServer {
 
 
     async isServerOnline(): Promise<boolean> {
-        if (this.rconManager.getIsConnected()) {
-            logger.trace("[isServerOnline] true (rcon connected)");
-            return true;
+        if (!this.rconManager.getIsConnected()) {
+            try {
+                logger.trace("[isServerOnline] rcon not connected, trying to connect");
+                await this.rconManager.connect(1, 1);
+            } catch (error) {
+                logger.trace("[isServerOnline] false (couldn't connect)");
+                return false;
+            }
         }
+        logger.trace("[isServerOnline] connected successfully, trying to send a command");
         try {
-            logger.trace("[isServerOnline] rcon not connected, trying to connect");
-            await this.rconManager.connect(1, 1);
-            logger.trace("[isServerOnline] true (connected successfully)");
+            await this.rconManager.withRcon(async (rcon: Rcon) => await rcon.send("list"));
+            logger.trace("[isServerOnline] true (connected and responding to commands)");
             return true;
         } catch (error) {
-            logger.trace("[isServerOnline] false");
+            logger.trace(`[isServerOnline] false (connected but failed sending command) Reason: ${getErrorMessage(error)}`);
             return false;
         }
     }

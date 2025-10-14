@@ -1,6 +1,6 @@
 import { Rcon } from "rcon-client"
 import logger from "./logging";
-import { sleep } from "./utils";
+import { getErrorMessage, sleep } from "./utils";
 
 export class RconManager {
     private rcon: Rcon;
@@ -21,7 +21,7 @@ export class RconManager {
         try {
             return await callback(this.rcon);
         } catch (error) {
-            logger.error(`RCON operation failed: ${this.getErrorMessage(error)}`);
+            logger.error(`RCON operation failed: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -38,7 +38,7 @@ export class RconManager {
             await this.rcon.connect();
             logger.info(`Rcon connected to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount}`);
         } catch (error) {
-            logger.error(`Rcon failed to connect to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount} with error: ${this.getErrorMessage(error)}`);
+            logger.error(`Rcon failed to connect to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount} with error: ${getErrorMessage(error)}`);
             const retryInSeconds = tryCount * 1000;
             logger.info(`Retrying to connect to rcon in ${retryInSeconds} seconds...`);
             await sleep(retryInSeconds);
@@ -62,7 +62,7 @@ export class RconManager {
         });
         this.rcon.on("error", async (error) => {
             this.setIsConnected(false);
-            logger.error(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} threw an error, trying to reconnect in 3 seconds...\n${this.getErrorMessage(error)}`);
+            logger.error(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} threw an error, trying to reconnect in 3 seconds...\n${getErrorMessage(error)}`);
             try {
                 this.rcon.end();
             } catch (error) { }
@@ -73,11 +73,6 @@ export class RconManager {
 
 
     /* Utils */
-
-
-    private getErrorMessage(error: any): string {
-        return error instanceof Error ? error.message : String(error);
-    }
 
 
     getIsConnected(): boolean {

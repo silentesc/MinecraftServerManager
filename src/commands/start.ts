@@ -76,7 +76,7 @@ module.exports = {
                 clearInterval(intervalId);
                 return;
             }
-        }, 3000);
+        }, 5000);
         logger.info(`Waiting for server ${targetServer.serverName} to be online`);
         while (!serverOnline) {
             await sleep(1000);
