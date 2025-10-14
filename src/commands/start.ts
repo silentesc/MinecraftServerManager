@@ -21,12 +21,12 @@ module.exports = {
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
-        if (!interaction.guild) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Guild is undefined");
+        if (!interaction.inGuild()) {
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Command can only be executed in guild");
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
-        if (!targetServer.discordServerIds.includes(interaction.guild.id)) {
+        if (!targetServer.discordServerIds.includes(interaction.guildId)) {
             responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Guild not in whitelist for this minecraft server");
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
