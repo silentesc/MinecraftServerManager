@@ -1,2 +1,8 @@
+**Options:**
+`name` - Name of the minecraft server.
+
 **Usage example:**
-`/start`
+`/start [name]`
+
+`[]` - required
+`()` - optional

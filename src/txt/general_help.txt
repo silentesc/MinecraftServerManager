@@ -4,3 +4,4 @@ Use `/help (command_name)` for detailed explanation.
   `/help` -> Displays the Help Page.
   `/ping` -> Shows the client & websocket latency.
   `/start` -> Starts the minecraft server.
+  `/servers` -> Lists all servers you have access to.

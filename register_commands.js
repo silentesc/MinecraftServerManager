@@ -16,6 +16,10 @@ const commands = [
         ],
     },
     {
+        name: "servers",
+        description: "Shows you all servers you have access to.",
+    },
+    {
         name: "ping",
         description: "Shows the client & websocket latency.",
     },
