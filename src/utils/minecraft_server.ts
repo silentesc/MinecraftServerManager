@@ -2,6 +2,7 @@ import { exec } from "child_process";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { Rcon } from "rcon-client";
 import logger from "./logging";
+import { RconManager } from "./rcon_manager";
 
 
 export class MinecraftServer {
@@ -12,10 +13,6 @@ export class MinecraftServer {
     startServerExecutable: string;
     emptyServerCheckIntervalMillis: number;
     emptyServerDurationUntilShutdownMillis: number;
-    rconHost: string;
-    rconPort: number;
-    rconPassword: string;
-    rconTimeoutMs: number;
     discordServerIds: Array<string>;
     discordMemberIds: Array<string>;
 
@@ -23,6 +20,7 @@ export class MinecraftServer {
     isStarting: boolean = false;
     // Util variables (for class itself)
     private intervalId: any | null = null;
+    private rconManager: RconManager;
 
 
     constructor(serverName: string, startServerExecutable: string, emptyServerCheckIntervalMillis: number, emptyServerDurationUntilShutdownMillis: number, rconHost: string, rconPort: number, rconPassword: string, rconTimeoutMs: number, discordServerIds: Array<string>, discordMemberIds: Array<string>) {
@@ -30,12 +28,10 @@ export class MinecraftServer {
         this.startServerExecutable = startServerExecutable;
         this.emptyServerCheckIntervalMillis = emptyServerCheckIntervalMillis;
         this.emptyServerDurationUntilShutdownMillis = emptyServerDurationUntilShutdownMillis;
-        this.rconHost = rconHost;
-        this.rconPort = rconPort;
-        this.rconPassword = rconPassword;
-        this.rconTimeoutMs = rconTimeoutMs;
         this.discordServerIds = discordServerIds;
         this.discordMemberIds = discordMemberIds;
+
+        this.rconManager = new RconManager(rconHost, rconPort, rconPassword, rconTimeoutMs);
     }
 
 
@@ -80,7 +76,7 @@ export class MinecraftServer {
             logger.trace(`[stopServer] ${this.serverName} not online, returning`);
             return;
         }
-        this.withRcon(async (rcon: Rcon) => {
+        this.rconManager.withRcon(async (rcon: Rcon) => {
             logger.trace(`[stopServer] Sending stop signal to ${this.serverName}`);
             await rcon.send("stop");
         });
@@ -126,12 +122,13 @@ export class MinecraftServer {
 
 
     async isServerOnline(): Promise<boolean> {
+        if (this.rconManager.getIsConnected()) {
+            return true;
+        }
         try {
-            await this.withRcon(async (_: Rcon) => { });
-            logger.trace(`[isServerOnline] ${this.serverName} true`);
+            await this.rconManager.connect(1, 1);
             return true;
         } catch (error) {
-            logger.trace(`[isServerOnline] ${this.serverName} false`);
             return false;
         }
     }
@@ -144,7 +141,7 @@ export class MinecraftServer {
             return false;
         }
 
-        return this.withRcon(async (rcon: Rcon) => {
+        return this.rconManager.withRcon(async (rcon: Rcon) => {
             const listOutput: string = (await rcon.send("list")).trim();
             if (!listOutput.includes(":")) {
                 logger.error("list output does not contain ':'");
@@ -158,18 +155,6 @@ export class MinecraftServer {
 
 
     /* Util methods */
-
-
-    private async withRcon<T>(callback: (rcon: Rcon) => Promise<T>): Promise<T> {
-        const rcon = await Rcon.connect({ host: this.rconHost, port: this.rconPort, password: this.rconPassword, timeout: this.rconTimeoutMs });
-        try {
-            return await callback(rcon);
-        } finally {
-            try {
-                await rcon.end();
-            } catch (error) { }
-        }
-    }
 
 
     private async sendInteractionFollowUp(interaction: ChatInputCommandInteraction, title: string, description: string): Promise<void> {
