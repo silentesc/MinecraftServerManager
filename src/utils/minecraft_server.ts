@@ -111,9 +111,8 @@ export class MinecraftServer {
 
     async isServerOnline(): Promise<boolean> {
         if (!this.rconManager.getIsConnected()) {
-            try {
-                await this.rconManager.connect(1, 1);
-            } catch (error) {
+            const connected = await this.rconManager.connect(1, 1);
+            if (!connected) {
                 return false;
             }
         }

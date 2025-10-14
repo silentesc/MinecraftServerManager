@@ -27,27 +27,34 @@ export class RconManager {
     }
 
 
-    async connect(tryCount: number = 1, maxTries: number = 3): Promise<void> {
+    /**
+     * 
+     * @param tryCount 
+     * @param maxTries 
+     * @returns boolean: true if connected
+     */
+    async connect(tryCount: number = 1, maxTries: number = 3): Promise<boolean> {
         if (this.getIsConnected()) {
             logger.debug(`Ignoring connect method for ${this.rcon.config.host}:${this.rcon.config.port} since it's already connected`);
-            return;
+            return true;
         }
         if (tryCount > maxTries) {
-            logger.warn("Rcon max connecting tries exceeded.");
+            logger.debug("Rcon max connecting tries exceeded.");
             this.setIsConnected(false);
             try {
                 await this.rcon.end();
             } catch (error) { }
-            return
+            return false;
         }
         try {
             await this.rcon.connect();
-            logger.info(`Rcon connected to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount}`);
+            logger.debug(`Rcon connected to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount}`);
+            return true;
         } catch (error) {
-            logger.warn(`Rcon failed to connect to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount} with error: ${getErrorMessage(error)}`);
+            logger.debug(`Rcon failed to connect to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount} with error: ${getErrorMessage(error)}`);
             const retryInSeconds = tryCount * 1000;
             await sleep(retryInSeconds);
-            await this.connect(++tryCount, maxTries);
+            return await this.connect(++tryCount, maxTries);
         }
     }
 
@@ -71,7 +78,10 @@ export class RconManager {
                 await this.rcon.end();
             } catch (error) { }
             await sleep(3000);
-            await this.connect();
+            const connected = await this.connect();
+            if (!connected) {
+                logger.error(`Failed to reconnect to ${this.rcon.config.host}:${this.rcon.config.port}`);
+            }
         });
     }
 
