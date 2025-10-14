@@ -50,7 +50,7 @@ module.exports = {
 
         // Start server
         try {
-            targetServer.startServer()
+            await targetServer.startServer();
         } catch (error) {
             responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription((error as string));
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
@@ -61,7 +61,8 @@ module.exports = {
         responseEmbed
             .setColor(0x4c8afb)
             .setTitle("Server starting...")
-            .setDescription(`Server '${name}' is being started. You will be notified when it's online.`);
+            .setDescription(`Server '${name}' is being started. You will be notified when it's online.`)
+            .setTimestamp(new Date());
         await interaction.reply({ embeds: [responseEmbed] });
 
         // Wait for server to start
@@ -80,13 +81,14 @@ module.exports = {
         targetServer.isStarting = false;
 
         // Start wait job for empty server (not blocking)
-        targetServer.waitForServerEmpty(interaction);
+        await targetServer.waitForServerEmpty(interaction);
 
         // Send started response
         responseEmbed
             .setColor(0x4c8afb)
             .setTitle("Server online")
-            .setDescription(`Server '${name}' is now online. Enjoy playing.`);
+            .setDescription(`Server '${name}' is now online. Enjoy playing.`)
+            .setTimestamp(new Date());
         await interaction.followUp({ embeds: [responseEmbed] });
     },
 };
