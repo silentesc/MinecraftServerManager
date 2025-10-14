@@ -9,42 +9,49 @@ module.exports = {
 
         // Check stuff
         if (!name) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Name required");
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Name required");
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
         const targetServer: MinecraftServer | undefined = MinecraftServer.servers.find(server => server.serverName === name);
         if (!targetServer) {
-            responseEmbed.setColor(0xfa4b4b).setTitle(`Server with Name '${name}' not found`);
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription(`Server with Name '${name}' not found`);
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
         if (!interaction.guild) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Guild is undefined");
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Guild is undefined");
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
         if (!targetServer.discordServerIds.includes(interaction.guild.id)) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Guild not in whitelist for this minecraft server");
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Guild not in whitelist for this minecraft server");
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
         if (!interaction.member) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Member is undefined");
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Member is undefined");
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
         if (!targetServer.discordMemberIds.includes(interaction.member.user.id)) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Member not in whitelist for this minecraft server");
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("You are not in whitelist for this minecraft server");
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
+        if (targetServer.isStarting || await targetServer.isServerOnline()) {
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Server already online or currently starting");
+            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        targetServer.isStarting = true;
 
         // Start server
         try {
             targetServer.startServer()
         } catch (error) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Starting the server failed with error").setDescription((error as string));
+            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription((error as string));
             await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
             return;
         }
@@ -52,7 +59,7 @@ module.exports = {
         // Send starting response
         responseEmbed
             .setColor(0x4c8afb)
-            .setTitle("Starting Server")
+            .setTitle("Server starting...")
             .setDescription(`Server '${name}' is being started. You will be notified when it's online.`);
         await interaction.reply({ embeds: [responseEmbed] });
 
@@ -64,13 +71,15 @@ module.exports = {
             }
         }, 3000);
 
-        // Start wait job for empty server
-        targetServer.waitForServerEmpty();
+        targetServer.isStarting = false;
+
+        // Start wait job for empty server (not blocking)
+        targetServer.waitForServerEmpty(interaction);
 
         // Send started response
         responseEmbed
             .setColor(0x4c8afb)
-            .setTitle("Starting Server")
+            .setTitle("Server online")
             .setDescription(`Server '${name}' is now online. Enjoy playing.`);
         await interaction.followUp({ embeds: [responseEmbed] });
     },

@@ -1,10 +1,12 @@
 import { exec } from "child_process";
+import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { Rcon } from "rcon-client";
 
 
 export class MinecraftServer {
     static servers: Array<MinecraftServer> = new Array();
 
+    // Config variables
     serverName: string;
     startServerExecutable: string;
     emptyServerCheckIntervalMillis: number;
@@ -16,6 +18,9 @@ export class MinecraftServer {
     discordServerIds: Array<string>;
     discordMemberIds: Array<string>;
 
+    // Util variables (for public use)
+    isStarting: boolean = false;
+    // Util variables (for class itself)
     private intervalId: any | null = null;
 
 
@@ -70,7 +75,7 @@ export class MinecraftServer {
     }
 
 
-    async waitForServerEmpty(): Promise<void> {
+    async waitForServerEmpty(interaction: ChatInputCommandInteraction): Promise<void> {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
@@ -88,6 +93,7 @@ export class MinecraftServer {
                 this.stopServer();
                 clearInterval(this.intervalId);
                 this.intervalId = null;
+                await this.sendInteractionFollowUp(interaction, "Server automatically stopped", `Nobody was online for ${this.emptyServerDurationUntilShutdownMillis / 60000} minutes`)
                 return;
             }
             // Reset interval counter
@@ -141,5 +147,13 @@ export class MinecraftServer {
                 await rcon.end();
             } catch (error) { }
         }
+    }
+
+
+    private async sendInteractionFollowUp(interaction: ChatInputCommandInteraction, title: string, description: string): Promise<void> {
+        const responseEmbed = new EmbedBuilder();
+        responseEmbed.setColor(0xfa4b4b).setTitle(title).setDescription(description).setTimestamp(new Date());
+        await interaction.followUp({ embeds: [responseEmbed] });
+        return;
     }
 }
