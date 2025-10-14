@@ -104,7 +104,7 @@ export class MinecraftServer {
             }
             // Increment interval counter
             counterMillis += this.emptyServerCheckIntervalMillis;
-            logger.trace(`${this.serverName} has no online players, reached ${roundTo(this.emptyServerCheckIntervalMillis / 60000, 2)}/${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
+            logger.trace(`${this.serverName} has no online players, reached ${roundTo(counterMillis / 60000, 2)}/${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
         }, this.emptyServerCheckIntervalMillis);
     }
 
