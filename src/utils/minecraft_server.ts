@@ -144,8 +144,11 @@ export class MinecraftServer {
 
     private async sendInteractionFollowUp(interaction: ChatInputCommandInteraction, title: string, description: string): Promise<void> {
         const responseEmbed = new EmbedBuilder();
-        responseEmbed.setColor(0xfa4b4b).setTitle(title).setDescription(description).setTimestamp(new Date());
-        await interaction.followUp({ embeds: [responseEmbed] });
-        return;
+        responseEmbed.setColor(0x4c8afb).setTitle(title).setDescription(description).setTimestamp(new Date());
+        try {
+            await interaction.followUp({ embeds: [responseEmbed] });
+        } catch (error) {
+            logger.error(`Unexpected error when sending follow up: ${error}`)
+        }
     }
 }

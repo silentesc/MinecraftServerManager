@@ -89,6 +89,10 @@ module.exports = {
             .setTitle("Server online")
             .setDescription(`Server '${name}' is now online. Enjoy playing.`)
             .setTimestamp(new Date());
-        await interaction.followUp({ embeds: [responseEmbed] });
+        try {
+            await interaction.followUp({ embeds: [responseEmbed] });
+        } catch (error) {
+            logger.error(`Unexpected error when sending follow up: ${error}`)
+        }
     },
 };
