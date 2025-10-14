@@ -71,10 +71,10 @@ module.exports = {
         // Wait for server to start
         logger.info(`Waiting for server ${targetServer.serverName} to be online`);
         while (true) {
+            await sleep(10000);
             if (await targetServer.isServerOnline()) {
                 break;
             }
-            await sleep(3000);
         }
         logger.info(`Server ${targetServer.serverName} is online`);
 

@@ -33,7 +33,7 @@ export class RconManager {
             return;
         }
         if (tryCount > maxTries) {
-            logger.error("Rcon max connecting tries exceeded, server is now marked as offline.");
+            logger.warn("Rcon max connecting tries exceeded.");
             this.setIsConnected(false);
             try {
                 await this.rcon.end();

@@ -64,7 +64,7 @@ export class MinecraftServer {
             return;
         }
         await this.rconManager.withRcon(async (rcon: Rcon) => {
-            logger.info(`Stopping server ${this.serverName}`);
+            logger.debug(`Stopping server ${this.serverName}`);
             clearInterval(this.intervalId);
             this.intervalId = null;
             await rcon.send("stop");
