@@ -99,8 +99,6 @@ export class MinecraftServer {
             // Reset interval counter
             if (await this.isAnyPlayerOnline()) {
                 logger.trace(`${this.serverName} has online players`);
-                clearInterval(this.intervalId);
-                this.intervalId = null;
                 counterMillis = 0;
                 return;
             }
