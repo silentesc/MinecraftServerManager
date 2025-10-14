@@ -1,5 +1,6 @@
 import { Client, ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
 import { MinecraftServer } from "../utils/minecraft_server";
+import { sleep } from "../utils/utils";
 
 
 module.exports = {
@@ -64,12 +65,17 @@ module.exports = {
         await interaction.reply({ embeds: [responseEmbed] });
 
         // Wait for server to start
+        let serverOnline = false;
         const intervalId = setInterval(async () => {
             if (await targetServer.isServerOnline()) {
+                serverOnline = true;
                 clearInterval(intervalId);
                 return;
             }
         }, 3000);
+        while (!serverOnline) {
+            await sleep(1000);
+        }
 
         targetServer.isStarting = false;
 
