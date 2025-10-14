@@ -123,12 +123,16 @@ export class MinecraftServer {
 
     async isServerOnline(): Promise<boolean> {
         if (this.rconManager.getIsConnected()) {
+            logger.trace("[isServerOnline] true (rcon connected)");
             return true;
         }
         try {
+            logger.trace("[isServerOnline] rcon not connected, trying to connect");
             await this.rconManager.connect(1, 1);
+            logger.trace("[isServerOnline] true (connected successfully)");
             return true;
         } catch (error) {
+            logger.trace("[isServerOnline] false");
             return false;
         }
     }

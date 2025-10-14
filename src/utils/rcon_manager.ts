@@ -42,7 +42,7 @@ export class RconManager {
             const retryInSeconds = tryCount * 1000;
             logger.info(`Retrying to connect to rcon in ${retryInSeconds} seconds...`);
             await sleep(retryInSeconds);
-            await this.connect(++tryCount);
+            await this.connect(++tryCount, maxTries);
         }
     }
 
