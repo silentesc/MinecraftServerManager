@@ -23,7 +23,12 @@ client.on("clientReady", async c => {
         name: "/help",
         type: ActivityType.Watching
     });
+    const serverNames: Array<string> = Array();
     servers.forEach(server => {
+        if (serverNames.includes(server.server_name)) {
+            throw new Error("Server name must be unique");
+        }
+        serverNames.push(server.server_name);
         MinecraftServer.servers.push(
             new MinecraftServer(
                 server.server_name,
