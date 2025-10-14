@@ -1,9 +1,11 @@
-import { exec } from "child_process";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { Rcon } from "rcon-client";
+import { exec } from "child_process";
+import { promisify } from "util";
 import logger from "./logging";
 import { RconManager } from "./rcon_manager";
 import { getErrorMessage } from "./utils";
+const execAsync = promisify(exec);
 
 
 export class MinecraftServer {
@@ -36,73 +38,57 @@ export class MinecraftServer {
     }
 
 
-    /**
-     * @throws error
-     */
     async startServer(): Promise<void> {
-        logger.trace(`[startServer] Starting server ${this.serverName}`);
         if (await this.isServerOnline()) {
-            logger.trace(`${this.serverName} already online`);
-            throw Error("[startServer] Server already running");
+            throw Error("Server already running");
         }
 
-        let done = false;
-        exec(this.startServerExecutable, (error, stdout, stderr) => {
-            if (error) {
-                logger.error(`Starting ${this.serverName} threw an error: ${getErrorMessage(error)}`);
-                throw error;
-            }
-            else if (stderr) {
+        try {
+            const { stderr } = await execAsync(this.startServerExecutable);
+            if (stderr) {
                 logger.error(`Starting ${this.serverName} threw an stderr: ${stderr}`);
                 throw new Error(stderr);
             }
-            logger.trace(`[startServer] Starting ${this.serverName} threw no errors`);
-            done = true;
-        });
+        } catch (error) {
+            logger.error(`Starting ${this.serverName} threw an error: ${getErrorMessage(error)}`);
+            throw error;
+        }
 
-        const intervalId = setInterval(() => {
-            logger.trace(`[startServer] Checking for started server ${this.serverName}`);
-            if (done) {
-                logger.trace(`[startServer] ${this.serverName} done`);
-                clearInterval(intervalId);
-                return;
-            }
-        }, 500);
+        logger.info(`Server start process for ${this.serverName} has been executed`);
     }
 
 
     async stopServer(): Promise<void> {
-        logger.trace(`[stopServer] Stopping server ${this.serverName}`);
         if (!(await this.isServerOnline())) {
-            logger.trace(`[stopServer] ${this.serverName} not online, returning`);
+            logger.debug(`Not stopping server ${this.serverName} because it's not online`)
             return;
         }
         await this.rconManager.withRcon(async (rcon: Rcon) => {
-            logger.trace(`[stopServer] Sending stop signal to ${this.serverName}`);
+            logger.info(`Stopping server ${this.serverName}`);
+            clearInterval(this.intervalId);
+            this.intervalId = null;
             await rcon.send("stop");
         });
     }
 
 
     async waitForServerEmpty(interaction: ChatInputCommandInteraction): Promise<void> {
-        logger.trace(`[waitForServerEmpty] Wait for server empty for ${this.serverName}`);
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
         let counterMillis = 0;
         this.intervalId = setInterval(async () => {
-            logger.trace(`[waitForServerEmpty] Check for server empty for ${this.serverName}`);
             // End interval checks
             if (!(await this.isServerOnline())) {
-                logger.trace(`[waitForServerEmpty] Server ${this.serverName} not online, stopping wait`);
+                logger.debug(`${this.serverName} not online, stopping wait for server empty job`);
                 clearInterval(this.intervalId);
                 this.intervalId = null;
                 return;
             }
             // End interval checks and stop server
-            if (counterMillis >= this.emptyServerCheckIntervalMillis) {
-                logger.trace(`[waitForServerEmpty] No players are on server ${this.serverName} for ${this.emptyServerDurationUntilShutdownMillis / 60000} minutes, stopping server`);
+            if (counterMillis >= this.emptyServerDurationUntilShutdownMillis) {
+                logger.info(`Nobody was online for ${this.emptyServerDurationUntilShutdownMillis / 60000} minutes, stopping server ${this.serverName}`);
                 this.stopServer();
                 clearInterval(this.intervalId);
                 this.intervalId = null;
@@ -111,7 +97,6 @@ export class MinecraftServer {
             }
             // Reset interval counter
             if (await this.isAnyPlayerOnline()) {
-                logger.trace(`[waitForServerEmpty] Players are online on ${this.serverName}, resetting counter`);
                 clearInterval(this.intervalId);
                 this.intervalId = null;
                 counterMillis = 0;
@@ -125,29 +110,22 @@ export class MinecraftServer {
     async isServerOnline(): Promise<boolean> {
         if (!this.rconManager.getIsConnected()) {
             try {
-                logger.trace("[isServerOnline] rcon not connected, trying to connect");
                 await this.rconManager.connect(1, 1);
             } catch (error) {
-                logger.trace("[isServerOnline] false (couldn't connect)");
                 return false;
             }
         }
-        logger.trace("[isServerOnline] connected successfully, trying to send a command");
         try {
             await this.rconManager.withRcon(async (rcon: Rcon) => await rcon.send("list"));
-            logger.trace("[isServerOnline] true (connected and responding to commands)");
             return true;
         } catch (error) {
-            logger.trace(`[isServerOnline] false (connected but failed sending command) Reason: ${getErrorMessage(error)}`);
             return false;
         }
     }
 
 
     async isAnyPlayerOnline(): Promise<boolean> {
-        logger.trace(`[isAnyPlayerOnline] check for any player online for ${this.serverName}`);
         if (!(await this.isServerOnline())) {
-            logger.trace(`[isAnyPlayerOnline] ${this.serverName} false, server not online`);
             return false;
         }
 
@@ -158,13 +136,9 @@ export class MinecraftServer {
                 logger.error(listOutput);
                 return false;
             }
-            logger.trace(`[isAnyPlayerOnline] ${listOutput.split(":")[1].length != 0} players are online`)
             return listOutput.split(":")[1].length != 0
         });
     }
-
-
-    /* Util methods */
 
 
     private async sendInteractionFollowUp(interaction: ChatInputCommandInteraction, title: string, description: string): Promise<void> {

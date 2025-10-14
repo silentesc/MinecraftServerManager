@@ -51,7 +51,7 @@ module.exports = {
 
         // Start server
         try {
-            logger.info(`${interaction.member.user.username} started the server ${targetServer.serverName}`);
+            logger.info(`${interaction.member.user.username} started server ${targetServer.serverName}`);
             await targetServer.startServer();
         } catch (error) {
             logger.error(`${targetServer.serverName} failed to start`);
@@ -69,17 +69,12 @@ module.exports = {
         await interaction.reply({ embeds: [responseEmbed] });
 
         // Wait for server to start
-        let serverOnline = false;
-        const intervalId = setInterval(async () => {
-            if (await targetServer.isServerOnline()) {
-                serverOnline = true;
-                clearInterval(intervalId);
-                return;
-            }
-        }, 5000);
         logger.info(`Waiting for server ${targetServer.serverName} to be online`);
-        while (!serverOnline) {
-            await sleep(1000);
+        while (true) {
+            if (await targetServer.isServerOnline()) {
+                break;
+            }
+            await sleep(3000);
         }
         logger.info(`Server ${targetServer.serverName} is online`);
 
