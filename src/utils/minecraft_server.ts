@@ -112,16 +112,13 @@ export class MinecraftServer {
             try {
                 await this.rconManager.connect(1, 1);
             } catch (error) {
-                logger.trace("[isServerOnline] false");
                 return false;
             }
         }
         try {
             await this.rconManager.withRcon(async (rcon: Rcon) => await rcon.send("list"));
-            logger.trace("[isServerOnline] true");
             return true;
         } catch (error) {
-            logger.trace("[isServerOnline] false");
             return false;
         }
     }

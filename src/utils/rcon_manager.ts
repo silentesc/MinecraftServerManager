@@ -36,7 +36,7 @@ export class RconManager {
             logger.error("Rcon max connecting tries exceeded, server is now marked as offline.");
             this.setIsConnected(false);
             try {
-                this.rcon.end();
+                await this.rcon.end();
             } catch (error) { }
             return
         }
@@ -68,7 +68,7 @@ export class RconManager {
             this.setIsConnected(false);
             logger.error(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} threw an error, trying to reconnect in 3 seconds...\n${getErrorMessage(error)}`);
             try {
-                this.rcon.end();
+                await this.rcon.end();
             } catch (error) { }
             await sleep(3000);
             await this.connect();
