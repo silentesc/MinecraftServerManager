@@ -73,6 +73,7 @@ export class MinecraftServer {
 
 
     async waitForServerEmpty(interaction: ChatInputCommandInteraction): Promise<void> {
+        logger.debug(`Starting server empty listener for ${this.serverName}`);
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
