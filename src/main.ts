@@ -1,4 +1,4 @@
-import { Client, ActivityType, EmbedBuilder, MessageFlags } from "discord.js";
+import { Client, ActivityType, EmbedBuilder, MessageFlags, GatewayIntentBits } from "discord.js";
 import { readdirSync } from "fs";
 import "dotenv/config";
 
@@ -14,7 +14,11 @@ readdirSync("./src/commands").filter(file => file.endsWith(".ts")).forEach(fileN
     commands.set(commandName, command);
 });
 
-const client = new Client({ intents: [] });
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+    ]
+});
 
 
 client.on("clientReady", async c => {
