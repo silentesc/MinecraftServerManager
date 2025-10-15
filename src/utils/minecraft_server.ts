@@ -1,12 +1,9 @@
-import { ChatInputCommandInteraction } from "discord.js";
 import { Rcon } from "rcon-client";
 import { exec } from "child_process";
 import { promisify } from "util";
 import logger from "./logging";
 import { RconManager } from "./rcon_manager";
 import { getErrorMessage, roundTo } from "./utils";
-import { sendEmbedToChannel } from "./interaction_utils";
-import { canSendMessageToChannel } from "./permission_checker";
 const execAsync = promisify(exec);
 
 
