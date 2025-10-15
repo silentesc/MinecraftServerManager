@@ -18,6 +18,17 @@
 - Create a `.env`
 - Create a `servers.json`
 
+### Create a bot
+- Go to the discord developer portal and create your bot
+- Edit Install Settings (Installation > Default Install Settings)
+    - Scopes
+        - applications.commands
+        - bot
+    - Permissions
+        - Embed Links
+        - Send Messages
+        - View Channels
+
 ### .env example:
 ```sh
 CLIENT_ID='' # Bot Client ID
@@ -44,3 +55,7 @@ LOG_LEVEL='' # trace, debug, info, warn, error, fatal
     // Add as many servers as you like
 ]
 ```
+
+## Running the bot
+- `npm run build`
+- `npm run start`
