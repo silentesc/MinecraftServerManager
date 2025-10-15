@@ -1,10 +1,11 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { Rcon } from "rcon-client";
 import { exec } from "child_process";
 import { promisify } from "util";
 import logger from "./logging";
 import { RconManager } from "./rcon_manager";
 import { getErrorMessage, roundTo } from "./utils";
+import { sendEmbedToChannel } from "./interaction_utils";
 const execAsync = promisify(exec);
 
 
@@ -94,7 +95,7 @@ export class MinecraftServer {
                 this.stopServer();
                 clearInterval(this.intervalId);
                 this.intervalId = null;
-                await this.sendInteractionFollowUp(interaction, "Server automatically stopped", `Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`)
+                await sendEmbedToChannel(interaction, 0x4c8afb, "Server automatically stopped", `Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
                 return;
             }
             // Reset interval counter
@@ -140,16 +141,5 @@ export class MinecraftServer {
             }
             return listOutput.split(":")[1].length != 0
         });
-    }
-
-
-    private async sendInteractionFollowUp(interaction: ChatInputCommandInteraction, title: string, description: string): Promise<void> {
-        const responseEmbed = new EmbedBuilder();
-        responseEmbed.setColor(0x4c8afb).setTitle(title).setDescription(description).setTimestamp(new Date());
-        try {
-            await interaction.followUp({ embeds: [responseEmbed] });
-        } catch (error) {
-            logger.error(`Unexpected error when sending follow up: ${error}`)
-        }
     }
 }

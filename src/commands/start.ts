@@ -1,49 +1,42 @@
-import { Client, ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
+import { Client, ChatInputCommandInteraction } from "discord.js";
 import { MinecraftServer } from "../utils/minecraft_server";
 import { sleep } from "../utils/utils";
 import logger from "../utils/logging";
+import { sendEmbedReply, sendEmbedToChannel } from "../utils/interaction_utils";
 
 
 module.exports = {
     execute: async (_: Client, interaction: ChatInputCommandInteraction) => {
         const name = interaction.options.get("name")?.value;
-        const responseEmbed = new EmbedBuilder();
 
         // Check stuff
         if (!name) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Name required");
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", "Name required", true);
             return;
         }
         const targetServer: MinecraftServer | undefined = MinecraftServer.servers.find(server => server.serverName === name);
         if (!targetServer) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription(`Server with Name '${name}' not found`);
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", `Server with Name '${name}' not found`, true);
             return;
         }
         if (!interaction.inGuild()) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Command can only be executed in guild");
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", "Command can only be executed in guild", true);
             return;
         }
         if (!targetServer.discordServerIds.includes(interaction.guildId)) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Guild not in whitelist for this minecraft server");
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", "Guild not in whitelist for this minecraft server", true);
             return;
         }
         if (!interaction.member) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Member is undefined");
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", "Member is undefined", true);
             return;
         }
         if (!targetServer.discordMemberIds.includes(interaction.member.user.id)) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("You are not in whitelist for this minecraft server");
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", "You are not in whitelist for this minecraft server", true);
             return;
         }
         if (targetServer.isStarting || await targetServer.isServerOnline()) {
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription("Server already online or currently starting");
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", "Server already online or currently starting", true);
             return;
         }
 
@@ -55,18 +48,12 @@ module.exports = {
             await targetServer.startServer();
         } catch (error) {
             logger.error(`${targetServer.serverName} failed to start`);
-            responseEmbed.setColor(0xfa4b4b).setTitle("Error").setDescription((error as string));
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", (error as string), true);
             return;
         }
 
         // Send starting response
-        responseEmbed
-            .setColor(0x4c8afb)
-            .setTitle("Server starting...")
-            .setDescription(`Server '${name}' is being started. You will be notified when it's online.`)
-            .setTimestamp(new Date());
-        await interaction.reply({ embeds: [responseEmbed] });
+        await sendEmbedReply(interaction, 0x4c8afb, "Server starting...", `Server '${name}' is being started. You will be notified when it's online.`, false);
 
         // Wait for server to start
         logger.info(`Waiting for server ${targetServer.serverName} to be online`);
@@ -76,23 +63,14 @@ module.exports = {
                 break;
             }
         }
-        logger.info(`Server ${targetServer.serverName} is online`);
-
-        targetServer.isStarting = false;
-
+        
         // Start wait job for empty server (not blocking)
         await targetServer.waitForServerEmpty(interaction);
 
+        targetServer.isStarting = false;
+        
         // Send started response
-        responseEmbed
-            .setColor(0x4c8afb)
-            .setTitle("Server online")
-            .setDescription(`Server '${name}' is now online. Enjoy playing.`)
-            .setTimestamp(new Date());
-        try {
-            await interaction.followUp({ embeds: [responseEmbed] });
-        } catch (error) {
-            logger.error(`Unexpected error when sending follow up: ${error}`)
-        }
+        logger.info(`Server ${targetServer.serverName} is online`);
+        await sendEmbedToChannel(interaction, 0x4c8afb, "Server is now online", `Server '${name}' is now online. Enjoy playing.`);
     },
 };
