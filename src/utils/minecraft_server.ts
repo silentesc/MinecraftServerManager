@@ -6,6 +6,7 @@ import logger from "./logging";
 import { RconManager } from "./rcon_manager";
 import { getErrorMessage, roundTo } from "./utils";
 import { sendEmbedToChannel } from "./interaction_utils";
+import { canSendMessageToChannel } from "./permission_checker";
 const execAsync = promisify(exec);
 
 
@@ -73,7 +74,7 @@ export class MinecraftServer {
     }
 
 
-    async waitForServerEmpty(interaction: ChatInputCommandInteraction): Promise<void> {
+    async waitForServerEmpty(callback: () => Promise<void>): Promise<void> {
         logger.debug(`Starting server empty listener for ${this.serverName} with ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
         if (this.intervalId) {
             clearInterval(this.intervalId);
@@ -95,7 +96,7 @@ export class MinecraftServer {
                 this.stopServer();
                 clearInterval(this.intervalId);
                 this.intervalId = null;
-                await sendEmbedToChannel(interaction, 0x4c8afb, "Server automatically stopped", `Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
+                await callback();
                 return;
             }
             // Reset interval counter
