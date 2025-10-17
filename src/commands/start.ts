@@ -15,7 +15,7 @@ module.exports = {
             await sendEmbedReply(interaction, 0xfa4b4b, "Error", "Name required", true);
             return;
         }
-        const targetServer: MinecraftServer | undefined = MinecraftServer.servers.find(server => server.serverName === name);
+        const targetServer: MinecraftServer | undefined = MinecraftServer.getServers().find(server => server.serverName === name);
         if (!targetServer) {
             await sendEmbedReply(interaction, 0xfa4b4b, "Error", `Server with Name '${name}' not found`, true);
             return;

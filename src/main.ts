@@ -28,25 +28,27 @@ client.on("clientReady", async c => {
         type: ActivityType.Watching
     });
     const serverNames: Array<string> = Array();
-    servers.forEach(server => {
-        if (serverNames.includes(server.server_name)) {
+    servers.forEach(async serverSettings => {
+        if (serverNames.includes(serverSettings.server_name)) {
             throw new Error("Server name must be unique");
         }
-        serverNames.push(server.server_name);
-        MinecraftServer.servers.push(
-            new MinecraftServer(
-                server.server_name,
-                server.start_server_executable,
-                server.empty_server_check_interval_millis,
-                server.empty_server_duration_until_shutdown_millis,
-                server.rcon_host,
-                server.rcon_port,
-                server.rcon_password,
-                server.rcon_timeout_ms,
-                server.discord_server_ids,
-                server.discord_member_ids,
-            )
+        serverNames.push(serverSettings.server_name);
+        // Server will add itself to it's static "servers" variable automatically
+        const server = new MinecraftServer(
+            serverSettings.server_name,
+            serverSettings.start_server_executable,
+            serverSettings.empty_server_check_interval_millis,
+            serverSettings.empty_server_duration_until_shutdown_millis,
+            serverSettings.rcon_host,
+            serverSettings.rcon_port,
+            serverSettings.rcon_password,
+            serverSettings.rcon_timeout_ms,
+            serverSettings.discord_server_ids,
+            serverSettings.discord_member_ids,
         );
+        if (await server.isServerOnline()) {
+            await server.waitForServerEmpty(async () => {});
+        }
     });
 });
 

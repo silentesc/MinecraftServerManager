@@ -8,7 +8,7 @@ const execAsync = promisify(exec);
 
 
 export class MinecraftServer {
-    static servers: Array<MinecraftServer> = new Array();
+    private static servers: Array<MinecraftServer> = new Array();
 
     // Config variables
     serverName: string;
@@ -34,6 +34,12 @@ export class MinecraftServer {
         this.discordMemberIds = discordMemberIds;
 
         this.rconManager = new RconManager(rconHost, rconPort, rconPassword, rconTimeoutMs);
+
+        MinecraftServer.servers.push(this);
+    }
+
+    static getServers(): Array<MinecraftServer> {
+        return MinecraftServer.servers;
     }
 
 
@@ -64,15 +70,13 @@ export class MinecraftServer {
         }
         await this.rconManager.withRcon(async (rcon: Rcon) => {
             logger.debug(`Stopping server ${this.serverName}`);
-            clearInterval(this.intervalId);
-            this.intervalId = null;
             await rcon.send("stop");
         });
     }
 
 
     async waitForServerEmpty(callback: () => Promise<void>): Promise<void> {
-        logger.debug(`Starting server empty listener for ${this.serverName} with ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
+        logger.info(`Starting server empty listener for ${this.serverName} with ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
@@ -82,7 +86,7 @@ export class MinecraftServer {
             logger.trace(`Checking ${this.serverName} for empty server`);
             // End interval checks
             if (!(await this.isServerOnline())) {
-                logger.debug(`${this.serverName} not online, stopping wait for server empty job`);
+                logger.info(`${this.serverName} is unexpectedly not online anymore, stopping wait for server empty job`);
                 clearInterval(this.intervalId);
                 this.intervalId = null;
                 return;
@@ -90,10 +94,10 @@ export class MinecraftServer {
             // End interval checks and stop server
             if (counterMillis >= this.emptyServerDurationUntilShutdownMillis) {
                 logger.info(`Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes, stopping server ${this.serverName}`);
-                this.stopServer();
+                await this.stopServer();
+                await callback();
                 clearInterval(this.intervalId);
                 this.intervalId = null;
-                await callback();
                 return;
             }
             // Reset interval counter
