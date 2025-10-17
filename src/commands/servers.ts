@@ -14,7 +14,7 @@ module.exports = {
             return;
         }
 
-        const serversWithMember: Array<string> = MinecraftServer.servers
+        const serversWithMember: Array<string> = MinecraftServer.getServers()
             .filter(server => server.discordMemberIds.includes(member.user.id))
             .map(server => server.serverName);
 
