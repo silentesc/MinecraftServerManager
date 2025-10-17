@@ -53,6 +53,15 @@ client.on("clientReady", async c => {
 });
 
 
+client.on("shardResume", (_) => {
+    if (!client.user) return;
+    client.user.setActivity({
+        name: "/help",
+        type: ActivityType.Watching
+    });
+});
+
+
 client.on("interactionCreate", async interaction => {
     if (!interaction.isChatInputCommand()) return;
     if (!interaction.inGuild()) return;
