@@ -1,5 +1,3 @@
-# !!! IN ACTIVE DEVELOPMENT !!!
-
 ## Features
 ### Commands
 (Use `/help (command_name)` for detailed explanation)
