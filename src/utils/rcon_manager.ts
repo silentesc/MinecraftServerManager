@@ -72,12 +72,13 @@ export class RconManager {
             logger.debug(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} ended`);
         });
         this.rcon.on("error", async (error) => {
+            let reconnectSecs = 10;
             this.setIsConnected(false);
-            logger.error(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} threw an error, trying to reconnect in 3 seconds...\n${getErrorMessage(error)}`);
+            logger.error(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} threw an error, trying to reconnect in ${reconnectSecs} seconds...\n${getErrorMessage(error)}`);
             try {
                 await this.rcon.end();
             } catch (error) { }
-            await sleep(10000);
+            await sleep(reconnectSecs * 1000);
             const connected = await this.connect();
             if (!connected) {
                 logger.error(`Failed to reconnect to ${this.rcon.config.host}:${this.rcon.config.port}`);
