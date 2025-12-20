@@ -84,7 +84,11 @@ client.on("interactionCreate", async interaction => {
                 .setColor(0xfa4b4b)
                 .setTitle("❗Error❗")
                 .setDescription("An unexpected error occured while executing that command.\n**Please contact an admin or dev so it can be fixed!**");
-            await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+                try {
+                    await interaction.reply({ embeds: [responseEmbed], flags: MessageFlags.Ephemeral });
+                } catch (error) {
+                    logger.error(`Failed to send error message to user: ${error}`)
+                }
         }
     }
 });
