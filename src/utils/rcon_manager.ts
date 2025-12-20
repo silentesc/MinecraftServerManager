@@ -77,7 +77,7 @@ export class RconManager {
             try {
                 await this.rcon.end();
             } catch (error) { }
-            await sleep(3000);
+            await sleep(10000);
             const connected = await this.connect();
             if (!connected) {
                 logger.error(`Failed to reconnect to ${this.rcon.config.host}:${this.rcon.config.port}`);
