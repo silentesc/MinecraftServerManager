@@ -2,7 +2,7 @@ import { Client, ChatInputCommandInteraction } from "discord.js";
 import { MinecraftServer } from "../utils/minecraft_server";
 import { roundTo, sleep } from "../utils/utils";
 import logger from "../utils/logging";
-import { sendEmbedReply, sendEmbedToChannel } from "../utils/interaction_utils";
+import { editEmbedReply, sendEmbedReply, sendEmbedToChannel } from "../utils/interaction_utils";
 import { canSendMessageToChannel } from "../utils/permission_checker";
 
 
@@ -51,16 +51,16 @@ module.exports = {
             await targetServer.startServer();
         } catch (error) {
             logger.error(`${targetServer.serverName} failed to start`);
-            await sendEmbedReply(interaction, 0xfa4b4b, "Error", (error as string), false);
+            await editEmbedReply(interaction, 0xfa4b4b, "Error", (error as string));
             return;
         }
 
         // Send starting response
         if (!await canSendMessageToChannel(client, interaction.guildId, interaction.channelId)) {
-            await sendEmbedReply(interaction, 0xfad34b, "Server starting...", `Server '${name}' is being started.\nI currently do not have the necessary permissions to send independent messages (like updates about the server stopping) to this channel.`, false);
+            await editEmbedReply(interaction, 0xfad34b, "Server starting...", `Server '${name}' is being started.\nI currently do not have the necessary permissions to send independent messages (like updates about the server stopping) to this channel.`);
         }
         else {
-            await sendEmbedReply(interaction, 0x4c8afb, "Server starting...", `Server '${name}' is being started. You will be notified when it's online.`, false);
+            await editEmbedReply(interaction, 0x4c8afb, "Server starting...", `Server '${name}' is being started. You will be notified when it's online.`);
         }
 
         // Wait for server to start
