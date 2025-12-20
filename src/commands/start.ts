@@ -41,6 +41,8 @@ module.exports = {
             return;
         }
 
+        await interaction.deferReply();
+
         targetServer.isStarting = true;
 
         // Start server
@@ -49,7 +51,7 @@ module.exports = {
             await targetServer.startServer();
         } catch (error) {
             logger.error(`${targetServer.serverName} failed to start`);
-            await sendEmbedReply(interaction, 0xfa4b4b, "Error", (error as string), true);
+            await sendEmbedReply(interaction, 0xfa4b4b, "Error", (error as string), false);
             return;
         }
 
