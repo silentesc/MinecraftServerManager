@@ -49,10 +49,12 @@ export class MinecraftServer {
         }
 
         try {
-            const { stderr } = await execAsync(this.startServerExecutable);
+            const { stdout, stderr } = await execAsync(this.startServerExecutable);
+            if (stdout) {
+                logger.info(`Started with stdout: ${stdout}`);
+            }
             if (stderr) {
-                logger.error(`Starting ${this.serverName} threw an stderr: ${stderr}`);
-                throw new Error(stderr);
+                logger.warn(`Started with stderr: ${stderr}`);
             }
         } catch (error) {
             logger.error(`Starting ${this.serverName} threw an error: ${getErrorMessage(error)}`);
