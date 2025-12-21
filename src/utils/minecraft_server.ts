@@ -51,10 +51,10 @@ export class MinecraftServer {
         try {
             const { stdout, stderr } = await execAsync(this.startServerExecutable);
             if (stdout) {
-                logger.info(`Started with stdout: ${stdout}`);
+                logger.info(`${this.serverName} started with stdout: ${stdout}`);
             }
             if (stderr) {
-                logger.warn(`Started with stderr: ${stderr}`);
+                logger.warn(`${this.serverName} started with stderr: ${stderr}`);
             }
         } catch (error) {
             logger.error(`Starting ${this.serverName} threw an error: ${getErrorMessage(error)}`);
@@ -67,11 +67,11 @@ export class MinecraftServer {
 
     async stopServer(): Promise<void> {
         if (!(await this.isServerOnline())) {
-            logger.debug(`Not stopping server ${this.serverName} because it's not online`)
+            logger.warn(`Not stopping server ${this.serverName} because it's not online`)
             return;
         }
         await this.rconManager.withRcon(async (rcon: Rcon) => {
-            logger.debug(`Stopping server ${this.serverName}`);
+            logger.info(`Stopping server ${this.serverName}`);
             await rcon.send("stop");
         });
     }
@@ -88,7 +88,7 @@ export class MinecraftServer {
             logger.trace(`Checking ${this.serverName} for empty server`);
             // End interval checks
             if (!(await this.isServerOnline())) {
-                logger.info(`${this.serverName} is unexpectedly not online anymore, stopping wait for server empty job`);
+                logger.warn(`${this.serverName} is unexpectedly not online anymore, stopping wait for server empty job`);
                 clearInterval(this.intervalId);
                 this.intervalId = null;
                 return;
@@ -117,7 +117,7 @@ export class MinecraftServer {
 
     async isServerOnline(): Promise<boolean> {
         if (!this.rconManager.getIsConnected()) {
-            const connected = await this.rconManager.connect(1, 1);
+            const connected = await this.rconManager.connect();
             if (!connected) {
                 return false;
             }
@@ -139,7 +139,7 @@ export class MinecraftServer {
         return this.rconManager.withRcon(async (rcon: Rcon) => {
             const listOutput: string = (await rcon.send("list")).trim();
             if (!listOutput.includes(":")) {
-                logger.error("list output does not contain ':'");
+                logger.error(`${this.serverName} list output does not contain ':'`);
                 logger.error(listOutput);
                 return false;
             }
