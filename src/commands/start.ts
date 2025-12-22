@@ -36,12 +36,11 @@ module.exports = {
             await sendEmbedReply(interaction, 0xfa4b4b, "Error", "You are not in whitelist for this minecraft server", true);
             return;
         }
-        if (targetServer.isStarting || await targetServer.isServerOnline()) {
+        await interaction.deferReply();
+        if (targetServer.isStarting || await targetServer.isServerOnline(3, 2)) {
             await sendEmbedReply(interaction, 0xfa4b4b, "Error", "Server already online or currently starting", true);
             return;
         }
-
-        await interaction.deferReply();
 
         targetServer.isStarting = true;
 
@@ -67,7 +66,7 @@ module.exports = {
         logger.info(`Waiting for server ${targetServer.serverName} to be online`);
         while (true) {
             await sleep(10000);
-            if (await targetServer.isServerOnline()) {
+            if (await targetServer.isServerOnline(1, 1)) {
                 break;
             }
         }
