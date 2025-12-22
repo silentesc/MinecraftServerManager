@@ -38,7 +38,7 @@ module.exports = {
         }
         await interaction.deferReply();
         if (targetServer.isStarting || await targetServer.isServerOnline(0, 1)) {
-            await sendEmbedReply(interaction, 0xfa4b4b, "Error", "Server already online or currently starting", true);
+            await editEmbedReply(interaction, 0xfa4b4b, "Error", "Server already online or currently starting");
             return;
         }
 
