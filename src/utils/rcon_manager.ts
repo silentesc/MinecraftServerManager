@@ -60,7 +60,7 @@ export class RconManager {
                 }
                 return true;
             } catch (error) {
-                logger.error(`Rcon failed to connect to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount} with error: ${getErrorMessage(error)}`);
+                logger.error(`Rcon failed to connect to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount}/${maxRetries} with error: ${getErrorMessage(error)}`);
                 if (tryCount >= maxRetries) {
                     logger.error(`${this.rcon.config.host}:${this.rcon.config.port} Rcon max connecting tries exceeded.`);
                     this.setIsConnected(false);
