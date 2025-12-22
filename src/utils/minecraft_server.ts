@@ -80,6 +80,7 @@ export class MinecraftServer {
     async waitForServerEmpty(callback: () => Promise<void>): Promise<void> {
         logger.info(`[${this.serverName}] Starting server empty listener with ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
         if (this.intervalId) {
+            logger.warn(`[${this.serverName}] Another server empty listener already running. Clearing old one and using this new one instead.`)
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
