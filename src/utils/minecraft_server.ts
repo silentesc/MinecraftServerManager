@@ -51,34 +51,34 @@ export class MinecraftServer {
         try {
             const { stdout, stderr } = await execAsync(this.startServerExecutable);
             if (stdout) {
-                logger.info(`${this.serverName} started with stdout: ${stdout}`);
+                logger.info(`[${this.serverName}] started with stdout: ${stdout}`);
             }
             if (stderr) {
-                logger.warn(`${this.serverName} started with stderr: ${stderr}`);
+                logger.warn(`[${this.serverName}] started with stderr: ${stderr}`);
             }
         } catch (error) {
-            logger.error(`Starting ${this.serverName} threw an error: ${getErrorMessage(error)}`);
+            logger.error(`[${this.serverName}] Starting threw an error: ${getErrorMessage(error)}`);
             throw error;
         }
 
-        logger.info(`Server start process for ${this.serverName} has been executed`);
+        logger.info(`[${this.serverName}] Server start process has been executed`);
     }
 
 
     async stopServer(): Promise<void> {
         if (!(await this.isServerOnline())) {
-            logger.warn(`Not stopping server ${this.serverName} because it's not online`)
+            logger.warn(`[${this.serverName}] Not stopping server because it's not online`)
             return;
         }
         await this.rconManager.withRcon(async (rcon: Rcon) => {
-            logger.info(`Stopping server ${this.serverName}`);
+            logger.info(`[${this.serverName}] Stopping server`);
             await rcon.send("stop");
         });
     }
 
 
     async waitForServerEmpty(callback: () => Promise<void>): Promise<void> {
-        logger.info(`Starting server empty listener for ${this.serverName} with ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
+        logger.info(`[${this.serverName}] Starting server empty listener with ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
@@ -89,17 +89,17 @@ export class MinecraftServer {
             if (isRunning) return;
             isRunning = true;
             try {
-                logger.trace(`Checking ${this.serverName} for empty server`);
+                logger.trace(`[${this.serverName}] Checking for empty server`);
                 // End interval checks
                 if (!(await this.isServerOnline())) {
-                    logger.warn(`${this.serverName} is unexpectedly not online anymore, stopping wait for server empty job`);
+                    logger.warn(`[${this.serverName}] Unexpectedly not online anymore, stopping wait for server empty job`);
                     clearInterval(this.intervalId);
                     this.intervalId = null;
                     return;
                 }
                 // End interval checks and stop server
                 if (counterMillis >= this.emptyServerDurationUntilShutdownMillis) {
-                    logger.info(`Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes, stopping server ${this.serverName}`);
+                    logger.info(`[${this.serverName}] Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes, stopping...`);
                     await this.stopServer();
                     await callback();
                     clearInterval(this.intervalId);
@@ -108,13 +108,13 @@ export class MinecraftServer {
                 }
                 // Reset interval counter
                 if (await this.isAnyPlayerOnline()) {
-                    logger.trace(`${this.serverName} has online players`);
+                    logger.trace(`[${this.serverName}] Has online players`);
                     counterMillis = 0;
                     return;
                 }
                 // Increment interval counter
                 counterMillis += this.emptyServerCheckIntervalMillis;
-                logger.trace(`${this.serverName} has no online players, reached ${roundTo(counterMillis / 60000, 2)}/${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
+                logger.trace(`[${this.serverName}] Has no online players, reached ${roundTo(counterMillis / 60000, 2)}/${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
             } finally {
                 isRunning = false;
             }
@@ -146,7 +146,7 @@ export class MinecraftServer {
         return this.rconManager.withRcon(async (rcon: Rcon) => {
             const listOutput: string = (await rcon.send("list")).trim();
             if (!listOutput.includes(":")) {
-                logger.error(`${this.serverName} list output does not contain ':'`);
+                logger.error(`[${this.serverName}] list output does not contain ':'`);
                 logger.error(listOutput);
                 return false;
             }

@@ -16,7 +16,7 @@ export class RconManager {
 
     async withRcon<T>(callback: (rcon: Rcon) => Promise<T>, retrySleepSecs: number = 10, maxRetries: number = 6): Promise<T> {
         if (!this.getIsConnected()) {
-            throw new Error(`${this.rcon.config.host}:${this.rcon.config.port} Rcon not connected`);
+            throw new Error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon not connected`);
         }
 
         let tryCount = 1;
@@ -24,11 +24,11 @@ export class RconManager {
             try {
                 let t: T = await callback(this.rcon);
                 if (tryCount > 1) {
-                    logger.info(`Previously failed RCON operation succeed on try ${tryCount}/${maxRetries}`);
+                    logger.info(`[${this.rcon.config.host}:${this.rcon.config.port}] Previously failed RCON operation succeed on try ${tryCount}/${maxRetries}`);
                 }
                 return t;
             } catch (error) {
-                logger.error(`${this.rcon.config.host}:${this.rcon.config.port} RCON operation failed on try ${tryCount}/${maxRetries}: ${getErrorMessage(error)}`);
+                logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] RCON operation failed on try ${tryCount}/${maxRetries}: ${getErrorMessage(error)}`);
                 if (tryCount >= maxRetries) {
                     throw error;
                 }
@@ -47,7 +47,7 @@ export class RconManager {
      */
     async connect(retrySleepSecs: number = 10, maxRetries: number = 6): Promise<boolean> {
         if (this.getIsConnected()) {
-            logger.debug(`Ignoring trying to connect for ${this.rcon.config.host}:${this.rcon.config.port} since it's already connected`);
+            logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Ignoring trying to connect since it's already connected`);
             return true;
         }
 
@@ -56,13 +56,13 @@ export class RconManager {
             try {
                 await this.rcon.connect();
                 if (tryCount > 1) {
-                    logger.info(`Previously failed connect attempt to ${this.rcon.config.host}:${this.rcon.config.port} succeed on try ${tryCount}/${maxRetries}`);
+                    logger.info(`[${this.rcon.config.host}:${this.rcon.config.port}] Previously failed connect attempt succeed on try ${tryCount}/${maxRetries}`);
                 }
                 return true;
             } catch (error) {
-                logger.error(`Rcon failed to connect to ${this.rcon.config.host}:${this.rcon.config.port} on try ${tryCount}/${maxRetries} with error: ${getErrorMessage(error)}`);
+                logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon failed to connect on try ${tryCount}/${maxRetries} with error: ${getErrorMessage(error)}`);
                 if (tryCount >= maxRetries) {
-                    logger.error(`${this.rcon.config.host}:${this.rcon.config.port} Rcon max connecting tries exceeded.`);
+                    logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon max connecting tries exceeded.`);
                     this.setIsConnected(false);
                     try {
                         await this.rcon.end();
@@ -78,27 +78,27 @@ export class RconManager {
 
     private setupRconEvents(): void {
         this.rcon.on("authenticated", () => {
-            logger.debug(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} authenticated`);
+            logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon for authenticated`);
         });
         this.rcon.on("connect", () => {
             this.setIsConnected(true);
-            logger.debug(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} connected`);
+            logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon for connected`);
         });
         this.rcon.on("end", async () => {
             this.setIsConnected(false);
-            logger.warn(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} ended`);
+            logger.warn(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon for ended`);
         });
         this.rcon.on("error", async (error) => {
             let reconnectSecs = 10;
             this.setIsConnected(false);
-            logger.error(`Rcon for ${this.rcon.config.host}:${this.rcon.config.port} threw an error, trying to reconnect in ${reconnectSecs} seconds...\n${getErrorMessage(error)}`);
+            logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon for threw an error, trying to reconnect in ${reconnectSecs} seconds...\n${getErrorMessage(error)}`);
             try {
                 await this.rcon.end();
             } catch (error) { }
             await sleep(reconnectSecs * 1000);
             const connected = await this.connect();
             if (!connected) {
-                logger.error(`Failed to reconnect to ${this.rcon.config.host}:${this.rcon.config.port}`);
+                logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Failed to reconnect`);
             }
         });
     }
