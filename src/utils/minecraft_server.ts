@@ -84,33 +84,40 @@ export class MinecraftServer {
             this.intervalId = null;
         }
         let counterMillis = 0;
+        let isRunning = false;
         this.intervalId = setInterval(async () => {
-            logger.trace(`Checking ${this.serverName} for empty server`);
-            // End interval checks
-            if (!(await this.isServerOnline())) {
-                logger.warn(`${this.serverName} is unexpectedly not online anymore, stopping wait for server empty job`);
-                clearInterval(this.intervalId);
-                this.intervalId = null;
-                return;
+            if (isRunning) return;
+            isRunning = true;
+            try {
+                logger.trace(`Checking ${this.serverName} for empty server`);
+                // End interval checks
+                if (!(await this.isServerOnline())) {
+                    logger.warn(`${this.serverName} is unexpectedly not online anymore, stopping wait for server empty job`);
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                    return;
+                }
+                // End interval checks and stop server
+                if (counterMillis >= this.emptyServerDurationUntilShutdownMillis) {
+                    logger.info(`Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes, stopping server ${this.serverName}`);
+                    await this.stopServer();
+                    await callback();
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                    return;
+                }
+                // Reset interval counter
+                if (await this.isAnyPlayerOnline()) {
+                    logger.trace(`${this.serverName} has online players`);
+                    counterMillis = 0;
+                    return;
+                }
+                // Increment interval counter
+                counterMillis += this.emptyServerCheckIntervalMillis;
+                logger.trace(`${this.serverName} has no online players, reached ${roundTo(counterMillis / 60000, 2)}/${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
+            } finally {
+                isRunning = false;
             }
-            // End interval checks and stop server
-            if (counterMillis >= this.emptyServerDurationUntilShutdownMillis) {
-                logger.info(`Nobody was online for ${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes, stopping server ${this.serverName}`);
-                await this.stopServer();
-                await callback();
-                clearInterval(this.intervalId);
-                this.intervalId = null;
-                return;
-            }
-            // Reset interval counter
-            if (await this.isAnyPlayerOnline()) {
-                logger.trace(`${this.serverName} has online players`);
-                counterMillis = 0;
-                return;
-            }
-            // Increment interval counter
-            counterMillis += this.emptyServerCheckIntervalMillis;
-            logger.trace(`${this.serverName} has no online players, reached ${roundTo(counterMillis / 60000, 2)}/${roundTo(this.emptyServerDurationUntilShutdownMillis / 60000, 2)} minutes`);
         }, this.emptyServerCheckIntervalMillis);
     }
 
