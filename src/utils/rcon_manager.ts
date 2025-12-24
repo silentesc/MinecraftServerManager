@@ -96,7 +96,7 @@ export class RconManager {
             logger.warn(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon ended`);
         });
         this.rcon.on("error", async (error) => {
-            let reconnectSecs = 10;
+            let reconnectSecs = 1;
             this.setIsConnected(false);
             logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon threw an error, trying to reconnect in ${reconnectSecs} seconds...\n${getErrorMessage(error)}`);
             try {
