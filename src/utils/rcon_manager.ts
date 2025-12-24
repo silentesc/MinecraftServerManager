@@ -93,7 +93,7 @@ export class RconManager {
         });
         this.rcon.on("end", async () => {
             this.setIsConnected(false);
-            logger.warn(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon ended`);
+            logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon ended`);
         });
         this.rcon.on("error", async (error) => {
             let reconnectSecs = 1;

@@ -123,15 +123,15 @@ export class MinecraftServer {
     }
 
 
-    async isServerOnline(): Promise<boolean> {
+    async isServerOnline(retrySleepSecs: number = 10, maxRetries: number = 6): Promise<boolean> {
         if (!this.rconManager.getIsConnected()) {
-            const connected = await this.rconManager.connect();
+            const connected = await this.rconManager.connect(retrySleepSecs, maxRetries);
             if (!connected) {
                 return false;
             }
         }
         try {
-            await this.rconManager.withRcon(async (rcon: Rcon) => await rcon.send("list"));
+            await this.rconManager.withRcon(async (rcon: Rcon) => await rcon.send("list"), retrySleepSecs, maxRetries);
             return true;
         } catch (error) {
             return false;
@@ -139,8 +139,8 @@ export class MinecraftServer {
     }
 
 
-    async isAnyPlayerOnline(): Promise<boolean> {
-        if (!(await this.isServerOnline())) {
+    async isAnyPlayerOnline(retrySleepSecs: number = 10, maxRetries: number = 6): Promise<boolean> {
+        if (!(await this.isServerOnline(retrySleepSecs, maxRetries))) {
             return false;
         }
 
@@ -152,6 +152,6 @@ export class MinecraftServer {
                 return false;
             }
             return listOutput.split(":")[1].length != 0
-        });
+        }, retrySleepSecs, maxRetries);
     }
 }
