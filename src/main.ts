@@ -47,7 +47,7 @@ client.on("clientReady", async c => {
             serverSettings.discord_member_ids,
         );
         logger.info(`[${server.serverName}] Checking if server is online to start wait for server empty listener`)
-        if (await server.isServerOnline()) {
+        if (await server.isServerOnline(0, 1)) {
             await server.waitForServerEmpty(async () => { });
         }
     });
