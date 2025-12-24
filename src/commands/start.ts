@@ -37,7 +37,7 @@ module.exports = {
             return;
         }
         await interaction.deferReply();
-        if (targetServer.isStarting || await targetServer.isServerOnline(0, 1)) {
+        if (targetServer.isStarting || await targetServer.isServerOnline()) {
             await editEmbedReply(interaction, 0xfa4b4b, "Error", "Server already online or currently starting");
             return;
         }
@@ -66,7 +66,7 @@ module.exports = {
         logger.info(`Waiting for server ${targetServer.serverName} to be online`);
         while (true) {
             await sleep(10000);
-            if (await targetServer.isServerOnline(0, 1)) {
+            if (await targetServer.isServerOnline()) {
                 break;
             }
         }
