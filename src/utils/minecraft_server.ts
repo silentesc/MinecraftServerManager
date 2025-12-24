@@ -44,7 +44,7 @@ export class MinecraftServer {
 
 
     async startServer(): Promise<void> {
-        if (await this.isServerOnline(0, 1)) {
+        if (await this.isServerOnline()) {
             throw new Error("Server already running");
         }
 
@@ -123,15 +123,15 @@ export class MinecraftServer {
     }
 
 
-    async isServerOnline(retrySleepSecs: number = 10, maxRetries: number = 6): Promise<boolean> {
+    async isServerOnline(): Promise<boolean> {
         if (!this.rconManager.getIsConnected()) {
-            const connected = await this.rconManager.connect(retrySleepSecs, maxRetries);
+            const connected = await this.rconManager.connect();
             if (!connected) {
                 return false;
             }
         }
         try {
-            await this.rconManager.withRcon(async (rcon: Rcon) => await rcon.send("list"), retrySleepSecs, maxRetries);
+            await this.rconManager.withRcon(async (rcon: Rcon) => await rcon.send("list"));
             return true;
         } catch (error) {
             return false;
