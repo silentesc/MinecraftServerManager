@@ -96,14 +96,11 @@ export class RconManager {
             logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon ended`);
         });
         this.rcon.on("error", async (error) => {
-            let reconnectSecs = 1;
             this.setIsAuthenticated(false);
             logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon threw an error: ${getErrorMessage(error)}`);
             try {
                 await this.rcon.end();
             } catch (error) { }
-            await sleep(reconnectSecs * 1000);
-            await this.connect();
         });
     }
 
