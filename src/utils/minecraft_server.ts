@@ -124,7 +124,7 @@ export class MinecraftServer {
 
 
     async isServerOnline(retrySleepSecs: number = 10, maxRetries: number = 6): Promise<boolean> {
-        if (!this.rconManager.getIsConnected()) {
+        if (!this.rconManager.getIsAuthenticated()) {
             const connected = await this.rconManager.connect(retrySleepSecs, maxRetries);
             if (!connected) {
                 return false;
