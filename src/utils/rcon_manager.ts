@@ -4,18 +4,18 @@ import { getErrorMessage, sleep } from "./utils";
 
 export class RconManager {
     private rcon: Rcon;
-    private isConnected: boolean;
+    private isAuthenticated: boolean;
 
 
     constructor(host: string, port: number, password: string, timeoutMs: number) {
-        this.isConnected = false;
+        this.isAuthenticated = false;
         this.rcon = new Rcon({ host, port, password, timeout: timeoutMs });
         this.setupRconEvents();
     }
 
 
     async withRcon<T>(callback: (rcon: Rcon) => Promise<T>, retrySleepSecs: number = 10, maxRetries: number = 6): Promise<T> {
-        if (!this.getIsConnected()) {
+        if (!this.getIsAuthenticated()) {
             throw new Error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon not connected`);
         }
 
@@ -46,7 +46,7 @@ export class RconManager {
      * @returns boolean: true if connected
      */
     async connect(retrySleepSecs: number = 10, maxRetries: number = 6): Promise<boolean> {
-        if (this.getIsConnected()) {
+        if (this.getIsAuthenticated()) {
             logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Ignoring trying to connect since it's already connected`);
             return true;
         }
@@ -70,7 +70,7 @@ export class RconManager {
                 logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon failed to connect on try ${tryCount}/${maxRetries} with error: ${errorMessage}`);
                 if (tryCount >= maxRetries) {
                     logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon max connecting tries exceeded.`);
-                    this.setIsConnected(false);
+                    this.setIsAuthenticated(false);
                     try {
                         await this.rcon.end();
                     } catch (error) { }
@@ -85,20 +85,20 @@ export class RconManager {
 
     private setupRconEvents(): void {
         this.rcon.on("authenticated", () => {
+            this.setIsAuthenticated(true);
             logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon authenticated`);
         });
         this.rcon.on("connect", () => {
-            this.setIsConnected(true);
             logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon connected`);
         });
         this.rcon.on("end", async () => {
-            this.setIsConnected(false);
+            this.setIsAuthenticated(false);
             logger.debug(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon ended`);
         });
         this.rcon.on("error", async (error) => {
             let reconnectSecs = 1;
-            this.setIsConnected(false);
-            logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon threw an error, trying to reconnect in ${reconnectSecs} seconds...\n${getErrorMessage(error)}`);
+            this.setIsAuthenticated(false);
+            logger.error(`[${this.rcon.config.host}:${this.rcon.config.port}] Rcon threw an error: ${getErrorMessage(error)}`);
             try {
                 await this.rcon.end();
             } catch (error) { }
@@ -108,12 +108,12 @@ export class RconManager {
     }
 
 
-    getIsConnected(): boolean {
-        return this.isConnected;
+    getIsAuthenticated(): boolean {
+        return this.isAuthenticated;
     }
 
 
-    private setIsConnected(isConnected: boolean): void {
-        this.isConnected = isConnected;
+    private setIsAuthenticated(isAuthenticated: boolean): void {
+        this.isAuthenticated = isAuthenticated;
     }
 }
