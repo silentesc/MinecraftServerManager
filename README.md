@@ -6,10 +6,6 @@
 - `/start` -> Starts the minecraft server.
 - `/servers` -> Lists all servers you have access to.
 
-### How to register commands
-- Edit `register_commands.js` (You'll need very basic javascript knowledge and googling skills)
-- run `npm run register`
-
 ## Installation
 - Clone the code
 - Open a terminal and execute `npm install`
