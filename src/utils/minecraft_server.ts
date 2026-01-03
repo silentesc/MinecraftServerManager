@@ -134,6 +134,7 @@ export class MinecraftServer {
             await this.rconManager.withRcon(async (rcon: Rcon) => await rcon.send("list"), retrySleepSecs, maxRetries);
             return true;
         } catch (error) {
+            logger.error(`[${this.serverName}] isServerOnline rcon failed: ${error}`);
             return false;
         }
     }
